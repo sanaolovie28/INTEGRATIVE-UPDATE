@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+python-jose
+passlib
+bcrypt
+qrcode[pil]
+pandas
+openpyxl
+requests
+python-multipart
