@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrative Workshop 101 - Registration</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: transparent;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            max-width: 550px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .time-info {
+            font-size: 14px;
+            margin-bottom: 30px;
+            color: #000;
+        }
+
+        .time-info strong {
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #888;
+        }
+
+        .ticket-preview-area {
+            margin-top: 40px;
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .ticket-text {
+            font-size: 16px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            min-height: 20px;
+            word-break: break-all;
+        }
+
+        .qr-wrapper {
+            margin-top: 25px;
+            background: #fff;
+            padding: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Integrative Workshop 101</h2>
+        <div class="time-info"><strong>TIME:</strong> 10:00 PM to 7:00 AM only</div>
+
+        <form id="registration-form" autocomplete="off">
+            <div class="form-group">
+                <label>NAME</label>
+                <input type="text" id="input-name" required>
+            </div>
+            <div class="form-group">
+                <label>STUDENT NUMBER</label>
+                <input type="text" id="input-student-number" required>
+            </div>
+            <div class="form-group">
+                <label>BLOCK</label>
+                <input type="text" id="input-block" required>
+            </div>
+            <div class="form-group">
+                <label>DEPARTMENT</label>
+                <input type="text" id="input-department" required>
+            </div>
+            <div class="form-group">
+                <label>COURSE</label>
+                <input type="text" id="input-course" required>
+            </div>
+            <div class="form-group">
+                <label>AGE</label>
+                <input type="text" id="input-age" required>
+            </div>
+            <div class="form-group">
+                <label>NATIONALITY</label>
+                <input type="text" id="input-nationality" required>
+            </div>
+        </form>
+
+        <div class="ticket-preview-area">
+            <div class="ticket-text" id="mirror-name">NAME</div>
+            <div class="ticket-text" id="mirror-student-number">STUDENT NUMBER</div>
+            <div class="ticket-text" id="mirror-block">BLOCK</div>
+            <div class="ticket-text" id="mirror-department">DEPARTMENT</div>
+            <div class="ticket-text" id="mirror-course">COURSE</div>
+            <div class="ticket-text" id="mirror-age">AGE</div>
+            <div class="ticket-text" id="mirror-nationality">NATIONALITY</div>
+            <div class="qr-wrapper">
+                <div id="qrcode"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('registration-form');
+        const qrContainer = document.getElementById('qrcode');
+        
+        const inputName = document.getElementById('input-name');
+        const inputStudentNumber = document.getElementById('input-student-number');
+        const inputBlock = document.getElementById('input-block');
+        const inputDepartment = document.getElementById('input-department');
+        const inputCourse = document.getElementById('input-course');
+        const inputAge = document.getElementById('input-age');
+        const inputNationality = document.getElementById('input-nationality');
+
+        const mirrorName = document.getElementById('mirror-name');
+        const mirrorStudentNumber = document.getElementById('mirror-student-number');
+        const mirrorBlock = document.getElementById('mirror-block');
+        const mirrorDepartment = document.getElementById('mirror-department');
+        const mirrorCourse = document.getElementById('mirror-course');
+        const mirrorAge = document.getElementById('mirror-age');
+        const mirrorNationality = document.getElementById('mirror-nationality');
+
+        let qrCodeInstance = null;
+
+        function updateTicketAndQR() {
+            const name = inputName.value || "NAME";
+            const studentNumber = inputStudentNumber.value || "STUDENT NUMBER";
+            const block = inputBlock.value || "BLOCK";
+            const department = inputDepartment.value || "DEPARTMENT";
+            const course = inputCourse.value || "COURSE";
+            const age = inputAge.value || "AGE";
+            const nationality = inputNationality.value || "NATIONALITY";
+
+            mirrorName.innerText = name.toUpperCase();
+            mirrorStudentNumber.innerText = studentNumber.toUpperCase();
+            mirrorBlock.innerText = block.toUpperCase();
+            mirrorDepartment.innerText = department.toUpperCase();
+            mirrorCourse.innerText = course.toUpperCase();
+            mirrorAge.innerText = age.toUpperCase();
+            mirrorNationality.innerText = nationality.toUpperCase();
+
+            const qrPayload = `Name:${name}|ID:${studentNumber}|Block:${block}|Dept:${department}|Course:${course}|Age:${age}|Nat:${nationality}`;
+
+            qrContainer.innerHTML = '';
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: qrPayload,
+                width: 90,
+                height: 90,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        const inputs = [inputName, inputStudentNumber, inputBlock, inputDepartment, inputCourse, inputAge, inputNationality];
+        inputs.forEach(input => {
+            input.addEventListener('input', updateTicketAndQR);
+        });
+
+        updateTicketAndQR();
+    </script>
+</body>
+</html>

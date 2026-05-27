@@ -235,7 +235,6 @@ async function registerUser() {
 }
 
 //--- QR CODE SCANNER SYSTEM ---
-
 let isProcessingScan = false;
 
 async function onScanSuccess(decodedText, decodedResult) {
@@ -248,7 +247,6 @@ async function onScanSuccess(decodedText, decodedResult) {
 
         if (typeof html5QrcodeScanner !== 'undefined') {
             html5QrcodeScanner.pause(true);
-            
             const scanStatusOverlay = document.getElementById('html5-qrcode-scan-status');
             if (scanStatusOverlay) {
                 scanStatusOverlay.remove();
@@ -267,7 +265,6 @@ async function onScanSuccess(decodedText, decodedResult) {
 
             document.getElementById("recordAttendanceBtn").addEventListener("click", async () => {
                 const btn = document.getElementById("recordAttendanceBtn");
-                
                 if (btn.innerText === "RECORDED") {
                     if (qrData.event_id) {
                         await loadAttendeesList(qrData.event_id);
@@ -301,7 +298,6 @@ async function onScanSuccess(decodedText, decodedResult) {
                         btn.innerText = "RECORDED";
                         btn.style.backgroundColor = "#28a745";
                         btn.disabled = false; 
-                        
                     } else {
                         const errData = await res.json();
                         alert("Database Error: " + (errData.detail || "Failed to log attendance."));
@@ -330,7 +326,6 @@ async function onScanSuccess(decodedText, decodedResult) {
                 }
             });
         }
-
     } catch (error) {
         console.error("Scanning Error:", error);
         alert("Invalid QR Code content or Server cannot be reached.");
@@ -930,7 +925,7 @@ function switchAdminTab(tabName) {
 
 let currentAttendeesData = [
     {
-        name: "STUDENT ACC",
+        name: "STUDENT ACCOUNT ANOTHER",
         student_number: "2025-200469",
         block: "ICS-401P",
         department: "ICS",
@@ -945,9 +940,9 @@ function checkEventExpiry() {
     const currentHour = new Date().getHours(); 
 
     if (currentHour >= 7 && currentHour < 22) {
-        return false;
+        return true;
     }
-    return true; 
+    return false; 
 }
 
 function loadAttendeesList() {
@@ -959,11 +954,11 @@ function loadAttendeesList() {
             tr.style.borderBottom = "1px solid #dbdbdb";
             let statusColor = row.status === "PRESENT" ? "#2ec4b6" : "#ff9f1c";
             tr.innerHTML = `
-                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.name || "-"}</td>
-                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.student_number || "-"}</td>
-                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.block || "-"}</td>
-                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.department || "-"}</td>
-                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.course || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.name || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.student_number || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.block || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.department || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.course || "-"}</td>
                 <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.age || "-"}</td>
                 <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.nationality || "-"}</td>
                 <td style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; color: ${statusColor}; text-align: center;">${row.status || "PENDING"}</td>

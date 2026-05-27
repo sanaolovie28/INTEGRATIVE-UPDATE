@@ -20,21 +20,37 @@ def get_db():
         db.close()
 
 class QRScanPayload(BaseModel):
-    ticket_id: int
+    ticket_id: int 
     event_id: int
 
 @router.post("/attendance/scan", status_code=status.HTTP_200_OK)
 async def scan_qr_attendance(payload: QRScanPayload, db: Session = Depends(get_db)):
 
+    search_ticket_id = payload.ticket_id
+    search_event_id = payload.event_id
+
+    if isinstance(search_ticket_id, str) and "TKT-" in search_ticket_id:
+        search_ticket_id = search_ticket_id.replace("TKT-", "")
+
+    try:
+        search_ticket_id = int(search_ticket_id)
+    except ValueError:
+        pass
+
+    try:
+        search_event_id = int(search_event_id)
+    except ValueError:
+        pass
+
     ticket = db.query(EventResponse).filter(
-        EventResponse.id == payload.ticket_id, 
-        EventResponse.event_id == payload.event_id
+        EventResponse.id == search_ticket_id, 
+        EventResponse.event_id == search_event_id
     ).first()
     
     if not ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Wrong QR Code!"
+            detail="Wrong QR Code! Ticket or Event match not found in database."
         )
     
     google_sheet_payload = {
