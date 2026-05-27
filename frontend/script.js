@@ -7,7 +7,7 @@ let currentAdminEventId = null;
 let currentAttendeesData = [];
 
 //GOOGLE SHEETS
-const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzCzQnOFK5e3PoeXX705JrddbD5doK58zYPbiIb7synf_WN0A8Qp6DulEbQywoGcTA1/exec";
+const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_rMXrcRAB-kAvH_BldA-8pucok1T6FmI2NM7-PbecTYcTApk0vUaUhcgvcIjJxtAs/exec";
 
 // --- PAGE NAVIGATION ---
 async function showPage(pageId) {
@@ -71,10 +71,14 @@ function safeResetForm(formId) {
 // --- GLOBAL TEXT INPUT FORMATTING ---
 
 document.addEventListener("input", function(e) {
+
+    if (e.target.type === "email" || e.target.id.toLowerCase().includes("email")) {
+        e.target.value = e.target.value.toLowerCase();
+        return; 
+    }
+
     if (
-        e.target.type !== "email" &&
-        e.target.type !== "password" && // 
-        !e.target.id.toLowerCase().includes("email") &&
+        e.target.type !== "password" && 
         !e.target.id.toLowerCase().includes("password") &&
         e.target.id !== "description" &&
         e.target.id !== "title" &&
@@ -104,7 +108,7 @@ async function studentLogin() {
         if (res.ok) {
             const data = await res.json();
             
-            sessionStorage.setItem("loggedInUserEmail", email);
+            const studentEmail = sessionStorage.getItem("loggedInStudentEmail")?.toLowerCase();
             
             alert("Login successful!");
             showPage('studentHome');
@@ -138,7 +142,7 @@ async function adminLogin() {
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", data.role);
         
-        sessionStorage.setItem("loggedInAdminEmail", email);
+        const adminEmail = sessionStorage.getItem("loggedInAdminEmail"); 
         
         alert("Admin Login successful!");
         showPage("adminHome");
@@ -232,26 +236,76 @@ async function registerUser() {
 }
 
 // --- QR CODE SCANNER SYSTEM ---
-function onScanSuccess(decodedText, decodedResult) {
-    document.getElementById('qr-reader-results').innerText = `Scanned ID/Data: ${decodedText}`;
-    alert(`Attendance logged successfully for: ${decodedText}`);
+let isProcessingScan = false;
+async function onScanSuccess(decodedText, decodedResult) {
+    if (document.getElementById('qr-reader-results')) {
+        document.getElementById('qr-reader-results').innerText = `Scanned ID/Data: ${decodedText}`;
+    }
+
+    if (isProcessingScan) return; 
+    isProcessingScan = true;
+
+    try {
+        const qrData = JSON.parse(decodedText);
+        
+        const token = localStorage.getItem("token");
+
+        const res = await fetch("http://127.0.0.1:8000/attendance/scan", { 
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` 
+            },
+            body: JSON.stringify({
+                ticket_id: qrData.ticket_id,
+                event_id: qrData.event_id
+            })
+        });
+
+        if (typeof html5QrcodeScanner !== 'undefined') {
+            await html5QrcodeScanner.clear(); 
+        }
+
+        if (res.ok) {
+            alert(`Attendance logged successfully for Ticket #${qrData.ticket_id}!`);
+            if (qrData.event_id) {
+                await loadAttendeesList(qrData.event_id);
+                switchAdminTab('attendees');
+            }
+            
+            if (typeof stopScannerAndGoBack === 'function') {
+                stopScannerAndGoBack(); 
+            }
+        } else {
+            const errData = await res.json();
+            alert("Database Error: " + (errData.detail || "Failed to log attendance."));
+        }
+
+    } catch (error) {
+        console.error("Scanning Error:", error);
+        alert("Invalid QR Code content or Server cannot be reached.");
+    }
     stopScannerAndGoBack();
 }
+
 
 function startQRScanner() {
     const qrReaderEl = document.getElementById("qr-reader");
     if (!qrReaderEl) return;
 
+
     if (!html5QrcodeScanner) {
         qrReaderEl.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; width: 100%; box-sizing: border-box;">
-                <p style="font-weight: bold; margin-bottom: 20px; color: #555;">CAMERA SCANNER READY</p>
-                <button id="triggerScanBtn" style="background: black; color: white; padding: 12px 30px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 0 auto; display: block;">START SCANNING</button>
-            </div>
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; width: 100%; height: 100%; min-height: 250px; flex: 1; box-sizing: border-box;">
+            <p style="font-weight: bold; margin: 0 0 20px 0; color: #555; width: 100%;">Camera Scanner Ready</p>
+            <button id="triggerScanBtn" style="background: black; color: white; padding: 12px 30px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-block;">START SCANNING</button>
+        </div>
         `;
+
 
         document.getElementById("triggerScanBtn").addEventListener("click", () => {
             qrReaderEl.innerHTML = "";
+
 
             html5QrcodeScanner = new Html5QrcodeScanner(
                 "qr-reader",
@@ -267,13 +321,26 @@ function startQRScanner() {
     }
 }
 
+
+function stopQRScannerEngineOnly() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().then(() => {
+            html5QrcodeScanner = null;
+            if (document.getElementById('qr-reader-results')) {
+                document.getElementById('qr-reader-results').innerText = "";
+            }
+        }).catch(err => {
+            console.error(err);
+        });
+    }
+}
+
+
 function stopScannerAndGoBack() {
     if (html5QrcodeScanner) {
         html5QrcodeScanner.clear().then(() => {
             html5QrcodeScanner = null;
-            if(document.getElementById('qr-reader-results')) {
-                document.getElementById('qr-reader-results').innerText = "";
-            }
+            document.getElementById('qr-reader-results').innerText = "";
             showPage('adminHome');
         }).catch(err => {
             showPage('adminHome');
@@ -282,6 +349,32 @@ function stopScannerAndGoBack() {
         showPage('adminHome');
     }
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleButtons = document.querySelectorAll(".toggle-password-btn");
+
+
+    toggleButtons.forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+
+
+            const targetId = this.getAttribute("data-target");
+            const targetInput = document.getElementById(targetId);
+
+
+            if (targetInput) {
+                const isHidden = targetInput.getAttribute("type") === "password";
+                targetInput.setAttribute("type", isHidden ? "text" : "password");
+                this.style.opacity = isHidden ? "0.4" : "1.0";
+            }
+        });
+    });
+});
+
+
+
 
 // --- EVENT MANAGEMENT & MANAGEMENT PREVIEWS ---
 function addQuestion() {
@@ -572,7 +665,6 @@ async function openEventForm(eventId) {
     }
 }
 
-
 async function submitStudentResponse(e) {
     if (e) {
         if (typeof e.preventDefault === "function") e.preventDefault();
@@ -622,8 +714,6 @@ async function submitStudentResponse(e) {
 
         const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrDataString)}`;
         
-        
-
         document.querySelectorAll("section, .page, .dashboard-page").forEach(p => {
             p.classList.add("hidden");
         });
@@ -640,13 +730,24 @@ async function submitStudentResponse(e) {
             qrContainer.style.display = "block";
         }
 
-        const studentForm = document.getElementById("dynamicStudentForm");
-        if (studentForm) studentForm.reset();
+        const qrCanvas = document.getElementById("qrcodeCanvas");
+        if (qrCanvas) {
+            qrCanvas.innerHTML = ""; 
 
-        return false;
+            new QRCode(qrCanvas, {
+                text: qrDataString,
+                width: 200,
+                height: 200,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
 
-    } catch (err) {
-        alert("An error occurred during submission. Please try again.");
+        return true;
+    } catch (error) {
+        console.error("Error submitting response:", error);
+        alert("Server connection error.");
         return false;
     }
 }
@@ -731,7 +832,6 @@ function switchAdminTab(tabName) {
     }
 }
 
-
 async function loadAttendeesList(eventId) {
     try {
         const response = await fetch(`http://127.0.0.1:8000/events/${eventId}/attendees`);
@@ -796,68 +896,25 @@ function downloadAttendeesCSV() {
     document.body.removeChild(link);
 }
 
-async function loadStudentAccountDetails() {
-    const studentEmail = sessionStorage.getItem("loggedInUserEmail"); 
 
-    if (!studentEmail) {
-        alert("Session expired. Please log in again.");
-        showPage("studentLogin");
-        return;
-    }
-
-    try {
-        const res = await fetch(`http://127.0.0.1:8000/auth/student-profile?email=${studentEmail}`);
-        
-        if (res.ok) {
-            const result = await res.json();
-          
-            document.getElementById("viewStudentName").innerText = result.data.name;
-            document.getElementById("viewStudentNumber").innerText = result.data.student_number;
-            document.getElementById("viewYearLevel").innerText = result.data.year_level;
-            document.getElementById("viewDepartment").innerText = result.data.department;
-            document.getElementById("viewCourse").innerText = result.data.course;
-            document.getElementById("viewEmail").innerText = result.data.email;
-            
-            showPage("studentAccount");
-        } else {
-            const errData = await res.json();
-            alert(errData.detail || "Failed to load profile data.");
-        }
-    } catch (error) {
-        console.error("Error loading profile:", error);
-        alert("Server connection error.");
-    }
+function loadStudentAccountDetails() {
+    document.getElementById("viewStudentName").innerText = "STUDENT ACC";
+    document.getElementById("viewStudentNumber").innerText = "2025-200469";
+    document.getElementById("viewYearLevel").innerText = "2";
+    document.getElementById("viewDepartment").innerText = "ICS";
+    document.getElementById("viewCourse").innerText = "IT";
+    document.getElementById("viewEmail").innerText = "2025-200469@rtu.edu.ph";
+    
+    showPage("studentAccount");
 }
 
-async function loadAdminAccountDetails() {
-    const adminEmail = sessionStorage.getItem("loggedInAdminEmail"); 
-
-    if (!adminEmail) {
-        alert("Session expired. Please log in again.");
-        showPage("adminLogin");
-        return;
-    }
-
-    try {
-        const res = await fetch(`http://127.0.0.1:8000/auth/student-profile?email=${adminEmail}`);
-        
-        if (res.ok) {
-            const result = await res.json();
-            
-            document.getElementById("viewAdminName").innerText = result.data.name;
-            document.getElementById("viewAdminStudentNumber").innerText = result.data.student_number || "N/A";
-            document.getElementById("viewAdminYearLevel").innerText = result.data.year_level || "N/A";
-            document.getElementById("viewAdminOrganization").innerText = result.data.organization || "N/A";
-            document.getElementById("viewAdminPosition").innerText = result.data.position || "N/A";
-            document.getElementById("viewAdminEmail").innerText = result.data.email;
-            
-            showPage("adminAccount");
-        } else {
-            const errData = await res.json();
-            alert(errData.detail || "Failed to load admin profile data.");
-        }
-    } catch (error) {
-        console.error("Error loading admin profile:", error);
-        alert("Server connection error.");
-    }
+function loadAdminAccountDetails() {
+    document.getElementById("viewAdminName").innerText = "ADMIN ACCOUNT";
+    document.getElementById("viewAdminStudentNumber").innerText = "2024-100469";
+    document.getElementById("viewAdminYearLevel").innerText = "2";
+    document.getElementById("viewAdminOrganization").innerText = "ICS";
+    document.getElementById("viewAdminPosition").innerText = "MEMBER";
+    document.getElementById("viewAdminEmail").innerText = "2024-100469@rtu.edu.ph";
+    
+    showPage("adminAccount");
 }

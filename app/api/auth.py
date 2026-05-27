@@ -9,6 +9,7 @@ from app.schemas.event import EventCreate
 from app.core.security import hash_password, verify_password, create_token
 
 from app.db.database import fetch_student_profile
+from app.db.database import fetch_admin_profile
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -61,13 +62,15 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     }
 
 @router.get("/auth/student-profile")
-async def get_profile(email: str):
+async def get_student_profile(email: str):  
     student_info = fetch_student_profile(email)
-    
     if not student_info:
         raise HTTPException(status_code=404, detail="Student not found.")
-        
-    return {
-        "success": True,
-        "data": student_info
-    }
+    return {"success": True, "data": student_info}
+
+@router.get("/auth/admin-profile")
+async def get_admin_profile(email: str):    
+    admin_info = fetch_admin_profile(email)
+    if not admin_info:
+        raise HTTPException(status_code=404, detail="Admin not found.")
+    return {"success": True, "data": admin_info}

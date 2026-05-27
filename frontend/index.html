@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -270,11 +271,12 @@
         </nav>
       </aside>
       <main class="main-content">
-        <div id="qrResultContainer" style="text-align: center; padding: 40px; border: 1px dashed #ccc; background: #f9f9f9; border-radius: 8px; width: 100%; max-width: 550px; margin: 0 auto;">
-          <h3 style="color: green; font-weight: 600;">🎉 REGISTRATION SUCCESSFUL!</h3>
+        <div id="qrResu ltContainer" style="text-align: center; padding: 40px; border: 1px dashed #ccc; background: #f9f9f9; border-radius: 8px; width: 100%; max-width: 550px; margin: 0 auto;">
+          <h3 style="color: green; font-weight: 600;">REGISTRATION SUCCESSFUL!</h3>
           <p style="color: #555; font-size: 14px;">Please screenshot or save your Unique QR Code below. <br> Present this to the event scanner.</p>
           <br>
-          <div id="qrcodeCanvas" style="display: flex; justify-content: center; align-items: center; margin: 20px 0; min-height: 200px;"></div>
+          <div id="qrcodeCanvas" style="display: flex; justify-content: center; align-items: center; margin: 20px 0; min-height: 200px;">
+          </div>
           <br>
           <button onclick="showPage('studentHome'); loadEvents();" class="custom-btn" style="width: auto; padding: 10px 25px;">BACK TO EVENTS</button>
         </div>

@@ -37,3 +37,21 @@ def fetch_student_profile(email: str):
     if row:
         return dict(row)
     return None
+
+def fetch_admin_profile(email: str):
+    conn = sqlite3.connect("./attendance.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT name, student_number, year_level, organization, position, email 
+        FROM users 
+        WHERE LOWER(email) = LOWER(?) AND LOWER(role) = 'admin'
+    """, (email,))
+    
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row:
+        return dict(row)
+    return None
