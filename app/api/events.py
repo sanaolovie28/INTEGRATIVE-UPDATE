@@ -111,6 +111,43 @@ def get_single_event(event_id: int, db: Session = Depends(get_db)):
                 "question_type": q.question_type,
                 "required": q.required
             })
+    responses = db.query(EventResponse).filter(EventResponse.event_id == event_id).all()
+    attendees_list = []
+    
+    for resp in responses:
+        attendee_data = {
+            "name": "-",
+            "student_number": "-",
+            "block": "-",
+            "department": "-",
+            "course": "-",
+            "custom_answers": "",
+            "status": getattr(resp, "status", "PENDING") or "PENDING"
+        }
+        
+        custom_answers_list = []
+        if hasattr(resp, "answers") and resp.answers:
+            for ans in resp.answers:
+                q_text = ans.question.question_text.upper() if ans.question else ""
+                val = ans.answer_value or "-"
+                
+                if "NAME" in q_text:
+                    attendee_data["name"] = val
+                elif "STUDENT NUMBER" in q_text or "STUDENT NO" in q_text:
+                    attendee_data["student_number"] = val
+                elif "BLOCK" in q_text:
+                    attendee_data["block"] = val
+                elif "DEPARTMENT" in q_text:
+                    attendee_data["department"] = val
+                elif "COURSE" in q_text:
+                    attendee_data["course"] = val
+                else:
+                    custom_answers_list.append(f"{q_text}: {val}")
+                
+        if custom_answers_list:
+            attendee_data["custom_answers"] = " | ".join(custom_answers_list)
+            
+        attendees_list.append(attendee_data)
 
     return {
         "id": event.id,
@@ -118,7 +155,8 @@ def get_single_event(event_id: int, db: Session = Depends(get_db)):
         "description": event.description,
         "time_limit": event.time_limit,
         "venue": event.venue,
-        "questions": questions_list
+        "questions": questions_list,
+        "attendees": attendees_list
     }
 
 @router.post("/events/{event_id}/questions")

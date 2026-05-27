@@ -132,24 +132,28 @@
     <button type="button" onclick="goToStart()">GO TO LOGIN PAGE</button>
   </section>
 
-  <section id="studentHome" class="page hidden dashboard-page">
-    <div class="dashboard-container">
-      <aside class="sidebar">
-        <div class="profile-icon" onclick="loadStudentAccountDetails()" style="cursor: pointer;">
+  <section id="studentHome" class="page hidden dashboard-page" style="margin: 0 !important; padding: 0 !important; text-align: left !important; width: 100vw; height: 100vh; overflow: hidden !important;">
+    <div style="display: flex; width: 100%; height: 100%; font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; text-align: left;">
+      <aside style="width: 25%; height: 100%; background-color: #efefef; display: flex; flex-direction: column; align-items: flex-start; padding: 60px 40px; box-sizing: border-box; text-align: left; border-right: 1px solid #ccc;">
+        <div class="profile-icon" onclick="loadStudentAccountDetails()" style="margin-bottom: 50px; margin-left: 10px; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #000000; border-radius: 50%; box-sizing: border-box; cursor: pointer;">
           <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <nav class="sidebar-nav">
-          <button onclick="showPage('studentHome'); loadEvents();" class="sidebar-btn">HOME</button>
-          <button onclick="showPage('studentHistory')" class="sidebar-btn">HISTORY</button>
-          <button onclick="showPage('start')" class="sidebar-btn">LOG OUT</button>
+        <nav style="display: flex; flex-direction: column; gap: 25px; margin-left: 10px; text-align: left;">
+          <button onclick="showPage('studentHome'); loadEvents();" class="sidebar-btn-clean">HOME</button>
+          <button onclick="showPage('studentHistory')" class="sidebar-btn-clean">HISTORY</button>
+          <button onclick="showPage('start')" class="sidebar-btn-clean">LOG OUT</button>
         </nav>
       </aside>
-      <main class="main-content">
-        <h2>AVAILABLE EVENTS</h2>
-        <div id="studentEventList" class="event-list-container"></div>
+      <main style="width: 75%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; margin: 0; padding: 0; background-color: #ffffff;">
+        <div style="width: 100%; background-color: #b5b5b5; padding: 30px 50px; box-sizing: border-box; border-bottom: 3px solid #000000;">
+          <h2 style="margin: 0; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 1px;">HOME</h2>
+        </div>
+        <div style="padding: 50px; display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; height: calc(100% - 98px);">
+          <div id="studentEventList" class="event-list-container"></div>
+        </div>
       </main>
     </div>
   </section>
@@ -228,6 +232,10 @@
     </div>
   </section>
 
+  <div id="expiryMessage" style="display: none; color: #ff3333; background-color: #ffe6e6; padding: 20px; border: 1px solid #ffcccc; border-radius: 8px; text-align: center; font-weight: bold; margin: 20px 0;">
+    REGISTRATION CLOSED: The deadline for this event has already passed.
+  </div>
+
   <section id="studentEventFormPage" class="page hidden dashboard-page">
     <div class="dashboard-container">
       <aside class="sidebar">
@@ -248,6 +256,7 @@
           <h2 id="currentEventTitle">EVENT TITLE HERE</h2>
           <p id="currentEventTime"><strong>Time Limit:</strong> Loading...</p>
           <div id="questionsContainer"></div>
+          </div>
           <br>
           <button type="button" onclick="submitStudentResponse(event)" class="custom-btn">SUBMIT AND GENERATE QR</button>
         </form>
@@ -271,7 +280,7 @@
         </nav>
       </aside>
       <main class="main-content">
-        <div id="qrResu ltContainer" style="text-align: center; padding: 40px; border: 1px dashed #ccc; background: #f9f9f9; border-radius: 8px; width: 100%; max-width: 550px; margin: 0 auto;">
+        <div id="qrResultContainer" style="text-align: center; padding: 40px; border: 1px dashed #ccc; background: #f9f9f9; border-radius: 8px; width: 100%; max-width: 550px; margin: 0 auto;">
           <h3 style="color: green; font-weight: 600;">REGISTRATION SUCCESSFUL!</h3>
           <p style="color: #555; font-size: 14px;">Please screenshot or save your Unique QR Code below. <br> Present this to the event scanner.</p>
           <br>
@@ -284,106 +293,119 @@
     </div>
   </section>  
 
-  <section id="studentHistory" class="page hidden dashboard-page">
-    <div class="dashboard-container">
-      <aside class="sidebar">
-        <div class="profile-icon" onclick="loadStudentAccountDetails()" style="cursor: pointer;">
+  <section id="studentHistory" class="page hidden" style="margin: 0 !important; padding: 0 !important; text-align: left !important; width: 100vw; height: 100vh; overflow: hidden !important;">
+    <div style="display: flex; width: 100%; height: 100%; font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; text-align: left;">
+      <aside style="width: 25%; height: 100%; background-color: #efefef; display: flex; flex-direction: column; align-items: flex-start; padding: 60px 40px; box-sizing: border-box; text-align: left; border-right: 1px solid #ccc;">
+        <div class="profile-icon" onclick="loadStudentAccountDetails()" style="margin-bottom: 50px; margin-left: 10px; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #000000; border-radius: 50%; box-sizing: border-box; cursor: pointer;">
           <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <nav class="sidebar-nav">
-          <button onclick="showPage('studentHome'); loadEvents();" class="sidebar-btn">HOME</button>
-          <button onclick="showPage('studentHistory')" class="sidebar-btn">HISTORY</button>
-          <button onclick="showPage('start')" class="sidebar-btn">LOG OUT</button>
+        <nav style="display: flex; flex-direction: column; gap: 25px; margin-left: 10px; text-align: left;">
+          <button onclick="showPage('studentHome'); loadEvents();" class="sidebar-btn-clean">HOME</button>
+          <button onclick="showPage('studentHistory')" class="sidebar-btn-clean">HISTORY</button>
+          <button onclick="showPage('start')" class="sidebar-btn-clean">LOG OUT</button>
         </nav>
       </aside>
-      <main class="main-content">
-        <h2>EVENT HISTORY</h2>
-        <p>List of events you have attended will be displayed here.</p>
+      <main style="width: 75%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; margin: 0; padding: 0; background-color: #ffffff;">
+        <div style="width: 100%; background-color: #b5b5b5; padding: 30px 50px; box-sizing: border-box; border-bottom: 3px solid #000000;">
+          <h2 style="margin: 0; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 1px;">HISTORY</h2>
+        </div>
+        <div style="padding: 50px; display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; height: calc(100% - 98px);">
+          <p>List of events you have attended will be displayed here.</p>
+        </div>
       </main>
     </div>
   </section>
 
-  <section id="adminHome" class="page hidden dashboard-page">
-    <div class="dashboard-container">
-      <aside class="sidebar">
-        <div class="profile-icon" onclick="loadAdminAccountDetails()" style="cursor: pointer;">
+  <section id="adminHome" class="page hidden" style="margin: 0 !important; padding: 0 !important; text-align: left !important; width: 100vw; height: 100vh; overflow: hidden !important;">
+    <div style="display: flex; width: 100%; height: 100%; font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; text-align: left;">
+      <aside style="width: 25%; height: 100%; background-color: #efefef; display: flex; flex-direction: column; align-items: flex-start; padding: 60px 40px; box-sizing: border-box; text-align: left; border-right: 1px solid #ccc;">
+        <div class="profile-icon" onclick="loadAdminAccountDetails()" style="margin-bottom: 50px; margin-left: 10px; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #000000; border-radius: 50%; box-sizing: border-box; cursor: pointer;">
           <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <nav class="sidebar-nav">
-          <button onclick="showPage('adminHome'); loadEvents();" class="sidebar-btn">HOME</button>
-          <button onclick="showPage('createEvent')" class="sidebar-btn">CREATE EVENT</button>
-          <button onclick="showPage('adminScanner')" class="sidebar-btn">SCANNER</button>
-          <button onclick="showPage('start')" class="sidebar-btn">LOG OUT</button>
+        <nav style="display: flex; flex-direction: column; gap: 25px; margin-left: 10px; text-align: left;">
+          <button onclick="showPage('adminHome'); loadEvents();" class="sidebar-btn-clean">HOME</button>
+          <button onclick="showPage('createEvent')" class="sidebar-btn-clean">CREATE EVENT</button>
+          <button onclick="showPage('adminScanner')" class="sidebar-btn-clean">SCANNER</button>
+          <button onclick="showPage('start')" class="sidebar-btn-clean">LOG OUT</button>
         </nav>
       </aside>
-      <main class="main-content">
-        <div id="adminEventList" class="event-list-container"></div>
+      <main style="width: 75%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; margin: 0; padding: 0; background-color: #ffffff;">
+        <div style="width: 100%; background-color: #b5b5b5; padding: 30px 50px; box-sizing: border-box; border-bottom: 3px solid #000000;">
+          <h2 style="margin: 0; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 1px;">HOME</h2>
+        </div>
+        <div style="padding: 50px; display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; height: calc(100% - 98px);">
+          <div id="adminEventList" class="event-list-container"></div>
+        </div>
       </main>
     </div>
   </section>
 
-  <section id="createEvent" class="page hidden dashboard-page">
-    <div class="dashboard-container">
-      <aside class="sidebar">
-        <div class="profile-icon" onclick="loadAdminAccountDetails()" style="cursor: pointer;">
+  <section id="createEvent" class="page hidden" style="margin: 0 !important; padding: 0 !important; text-align: left !important; width: 100vw; height: 100vh; overflow: hidden !important;">
+    <div style="display: flex; width: 100%; height: 100%; font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; text-align: left;">
+      <aside style="width: 25%; height: 100%; background-color: #efefef; display: flex; flex-direction: column; align-items: flex-start; padding: 60px 40px; box-sizing: border-box; text-align: left; border-right: 1px solid #ccc;">
+        <div class="profile-icon" onclick="loadAdminAccountDetails()" style="margin-bottom: 50px; margin-left: 10px; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #000000; border-radius: 50%; box-sizing: border-box; cursor: pointer;">
           <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <nav class="sidebar-nav">
-          <button onclick="showPage('adminHome')" class="sidebar-btn">HOME</button>
-          <button onclick="showPage('createEvent')" class="sidebar-btn">CREATE EVENT</button>
-          <button onclick="showPage('adminScanner')" class="sidebar-btn">SCANNER</button>
-          <button onclick="showPage('start')" class="sidebar-btn">LOG OUT</button>
+        <nav style="display: flex; flex-direction: column; gap: 25px; margin-left: 10px; text-align: left;">
+          <button onclick="showPage('adminHome')" class="sidebar-btn-clean">HOME</button>
+          <button onclick="showPage('createEvent')" class="sidebar-btn-clean">CREATE EVENT</button>
+          <button onclick="showPage('adminScanner')" class="sidebar-btn-clean">SCANNER</button>
+          <button onclick="showPage('start')" class="sidebar-btn-clean">LOG OUT</button>
         </nav>
       </aside>
-      <main class="main-content">
-        <h2>CREATE AN EVENT</h2>
-        <form id="eventForm" onsubmit="event.preventDefault(); submitEvent(event); return false;">
-          <label>EVENT TITLE</label>
-          <input type="text" id="title" placeholder="Enter event title">
-          <label>DESCRIPTION</label>
-          <input type="text" id="description" placeholder="Event description">
-          <div class="time-boxes">
-            <div class="time-box">
-              <label for="startTime">START TIME:</label>
-              <input type="time" id="startTime">
+      <main style="width: 75%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; margin: 0; padding: 0; background-color: #ffffff;">
+        <div style="width: 100%; background-color: #b5b5b5; padding: 30px 50px; box-sizing: border-box; border-bottom: 3px solid #000000;">
+          <h2 style="margin: 0; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 1px;">CREATE EVENT</h2>
+        </div>
+        <div style="padding: 50px; display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; height: calc(100% - 98px);">
+          <form id="eventForm" onsubmit="event.preventDefault(); submitEvent(event); return false;">
+            <label>EVENT TITLE</label>
+            <input type="text" id="title" placeholder="Enter event title">
+            <label>DESCRIPTION</label>
+            <input type="text" id="description" placeholder="Event description">
+            <div class="time-boxes">
+              <div class="time-box">
+                <label for="startTime">START TIME:</label>
+                <input type="time" id="startTime">
+              </div>
+              <div class="time-box">
+                <label for="endTime">END TIME:</label>
+                <input type="time" id="endTime">
+              </div>
             </div>
-            <div class="time-box">
-              <label for="endTime">END TIME:</label>
-              <input type="time" id="endTime">
+          </form>
+          <div id="defaultQuestions">
+            <br><label>DEFAULT BASE TEMPLATE</label><br><hr>
+            <label>NAME</label><br>
+            <label>STUDENT NUMBER</label><br>
+            <label>BLOCK</label><br>
+            <label>DEPARTMENT</label><br>
+            <label>COURSE</label><br><hr> 
+            <br>
+          </div>
+          <button type="button" class="custom-btn" onclick="addQuestion()">+ ADD CUSTOM QUESTION</button>
+          <div><hr></div>
+          <div id="questionContainer"></div>
+          <button type="button" class="custom-btn" onclick="showFinalPreview()">DONE</button>
+          <div><hr></div>
+          <div id="finalPreview" style="display: none;">
+            <div class="event-preview">
+              <h2 id="preview-title">EVENT TITLE</h2>
+              <p id="preview-description">EVENT DESCRIPTION</p>
+              <p id="preview-time"><strong>TIME LIMIT</strong></p>
             </div>
           </div>
-        </form>
-        <div id="defaultQuestions">
-          <br><label>DEFAULT BASE TEMPLATE</label><br><hr>
-          <label>NAME</label><br>
-          <label>STUDENT NUMBER</label><br>
-          <label>BLOCK</label><br>
-          <label>DEPARTMENT</label><br>
-          <label>COURSE</label><br><hr> 
-          <br>
+          <button type="button" class="custom-btn" onclick="submitEvent(event)">CREATE EVENT</button>
         </div>
-        <button type="button" class="custom-btn" onclick="addQuestion()">+ ADD CUSTOM QUESTION</button>
-        <div><hr></div>
-        <div id="questionContainer"></div>
-        <button type="button" class="custom-btn" onclick="showFinalPreview()">DONE</button>
-        <div><hr></div>
-        <div id="finalPreview" style="display: none;">
-          <div class="event-preview">
-            <h2 id="preview-title">EVENT TITLE</h2>
-            <p id="preview-description">EVENT DESCRIPTION</p>
-            <p id="preview-time"><strong>TIME LIMIT</strong></p>
-          </div>
-        </div>
-        <button type="button" class="custom-btn" onclick="submitEvent(event)">CREATE EVENT</button>
       </main>
     </div>
   </section>
@@ -414,7 +436,7 @@
           <button id="tabFormBtn" onclick="switchAdminTab('form')" style="font-family: 'Poppins'; background: black; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">
             📋 Form Preview
           </button>
-          <button id="tabAttendeesBtn" onclick="switchAdminTab('attendees')" style="font-family: 'Poppins'; background: #f0f0f0; color: black; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">
+          <button id="tabAttendeesBtn" onclick="switchAdminTab('attendees'); loadAttendeesList();" style="font-family: 'Poppins'; background: #f0f0f0; color: black; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px;">
             👥 Attendees List
           </button>
         </div>
@@ -432,12 +454,14 @@
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
               <thead>
                 <tr style="background-color: #f4f4f4; border-bottom: 2px solid #dbdbdb;">
-                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold;">NAME</th>
-                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold;">STUDENT NUMBER</th>
-                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold;">BLOCK</th>
-                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold;">DEPARTMENT</th>
-                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold;">COURSE</th>
-                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold;">ADDITIONAL ANSWERS</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">NAME</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">STUDENT NUMBER</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">BLOCK</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">DEPARTMENT</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">COURSE</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">AGE</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">NATIONALITY</th>
+                  <th style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; text-align: center; align-items: center;">STATUS</th>
                 </tr>
               </thead>
               <tbody id="attendeesTableBody"></tbody>
@@ -448,28 +472,32 @@
     </div>
   </section>
 
-  <section id="adminScanner" class="page hidden dashboard-page">
-    <div class="dashboard-container"> 
-      <aside class="sidebar">
-        <div class="profile-icon" onclick="loadAdminAccountDetails()" style="cursor: pointer;">
+  <section id="adminScanner" class="page hidden" style="margin: 0 !important; padding: 0 !important; text-align: left !important; width: 100vw; height: 100vh; overflow: hidden !important;">
+    <div style="display: flex; width: 100%; height: 100%; font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; text-align: left;"> 
+      <aside style="width: 25%; height: 100%; background-color: #efefef; display: flex; flex-direction: column; align-items: flex-start; padding: 60px 40px; box-sizing: border-box; text-align: left; border-right: 1px solid #ccc;">
+        <div class="profile-icon" onclick="loadAdminAccountDetails()" style="margin-bottom: 50px; margin-left: 10px; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #000000; border-radius: 50%; box-sizing: border-box; cursor: pointer;">
           <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-        <nav class="sidebar-nav">
-          <button onclick="showPage('adminHome')" class="sidebar-btn">HOME</button>
-          <button onclick="showPage('createEvent')" class="sidebar-btn">CREATE EVENT</button>
-          <button onclick="showPage('adminScanner')" class="sidebar-btn">SCANNER</button>
-          <button onclick="showPage('start')" class="sidebar-btn">LOG OUT</button>
+        <nav style="display: flex; flex-direction: column; gap: 25px; margin-left: 10px; text-align: left;">
+          <button onclick="showPage('adminHome')" class="sidebar-btn-clean">HOME</button>
+          <button onclick="showPage('createEvent')" class="sidebar-btn-clean">CREATE EVENT</button>
+          <button onclick="showPage('adminScanner')" class="sidebar-btn-clean">SCANNER</button>
+          <button onclick="showPage('start')" class="sidebar-btn-clean">LOG OUT</button>
         </nav>
       </aside>
-      <main class="main-content">
-        <h2>ADMIN SCANNER</h2>
-        <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 20px auto; background: #f0f0f0; border-radius: 12px; padding-bottom: 30px; box-sizing: border-box;"></div>
-        <div id="qr-reader-results" style="text-align: center; font-size: 18px; font-weight: bold; margin-top: 15px; color: #333;"></div>
-        <div class="button-row" style="margin-top: 20px; text-align: center;">
-          <button type="button" onclick="stopScannerAndGoBack()">BACK TO DASHBOARD</button>
+      <main style="width: 75%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; margin: 0; padding: 0; background-color: #ffffff;">
+        <div style="width: 100%; background-color: #b5b5b5; padding: 30px 50px; box-sizing: border-box; border-bottom: 3px solid #000000;">
+          <h2 style="margin: 0; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 1px;">SCANNER</h2>
+        </div>
+        <div style="padding: 50px; display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; height: calc(100% - 98px);">
+          <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 20px auto; background: #f0f0f0; border-radius: 12px; padding-bottom: 30px; box-sizing: border-box;"></div>
+          <div id="qr-reader-results" style="text-align: center; font-size: 18px; font-weight: bold; margin-top: 15px; color: #333;"></div>
+          <div class="button-row" style="margin-top: 20px; text-align: center;">
+            <button type="button" onclick="stopScannerAndGoBack()">BACK TO DASHBOARD</button>
+          </div>
         </div>
       </main>
     </div>
@@ -477,16 +505,13 @@
 
   <section id="adminAccount" class="page hidden" style="margin: 0 !important; padding: 0 !important; text-align: left !important; width: 100vw; height: 100vh; overflow: hidden !important">
     <div style="display: flex; width: 100%; height: 100%; font-family: 'Poppins', sans-serif; box-sizing: border-box; margin: 0; padding: 0; text-align: left;">
-        
       <aside style="width: 25%; height: 100%; background-color: #efefef; display: flex; flex-direction: column; align-items: flex-start; padding: 60px 40px; box-sizing: border-box; text-align: left; border-right: 1px solid #ccc;">
-        
         <div style="margin-bottom: 50px; margin-left: 10px; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px; background-color: #000000; border-radius: 50%; box-sizing: border-box; cursor: pointer;" onclick="showPage('adminHome')">
           <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
         </div>
-
         <nav style="display: flex; flex-direction: column; gap: 25px; margin-left: 10px; text-align: left;">
           <style>
             .sidebar-btn-clean {
@@ -523,46 +548,34 @@
               min-height: 30px;
             }
           </style>
-          
           <button onclick="showPage('adminHome')" class="sidebar-btn-clean">HOME</button>
           <button onclick="showPage('createEvent')" class="sidebar-btn-clean">CREATE EVENT</button>
           <button onclick="showPage('adminScanner')" class="sidebar-btn-clean">SCANNER</button>
           <button onclick="showPage('start')" class="sidebar-btn-clean">LOG OUT</button>
         </nav>
       </aside>
-
       <main style="width: 75%; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; margin: 0; padding: 0; background-color: #ffffff;">
-        
         <div style="width: 100%; background-color: #b5b5b5; padding: 30px 50px; box-sizing: border-box; border-bottom: 3px solid #000000;">
           <h2 style="margin: 0; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 1px;">ADMIN ACCOUNT</h2>
         </div>
-
          <div style="padding: 50px; display: flex; flex-direction: column; box-sizing: border-box; overflow-y: auto; height: calc(100% - 98px);">
           <div class="profile-row-title">NAME</div>
           <div id="viewAdminName" class="profile-value-display"></div>
-          
           <div class="profile-row-title">STUDENT NUMBER</div>
           <div id="viewAdminStudentNumber" class="profile-value-display"></div>
-          
           <div class="profile-row-title">YEAR LEVEL</div>
           <div id="viewAdminYearLevel" class="profile-value-display"></div>
-          
           <div class="profile-row-title">ORGANIZATION</div>
           <div id="viewAdminOrganization" class="profile-value-display"></div>
-          
           <div class="profile-row-title">POSITION</div>
           <div id="viewAdminPosition" class="profile-value-display"></div>
-          
           <div class="profile-row-title">EMAIL</div>
           <div id="viewAdminEmail" class="profile-value-display"></div>
-          
           <div class="profile-row-title">PASSWORD</div>
           <div id="viewAdminPassword" class="profile-value-display">********</div>
         </div>
-
       </main>
     </div>
   </section>
-
 </body>
 </html>

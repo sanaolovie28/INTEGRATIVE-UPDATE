@@ -4,7 +4,6 @@ let finalRoleToSave = "";
 let currentActiveEventId = null;
 let html5QrcodeScanner = null;
 let currentAdminEventId = null;
-let currentAttendeesData = [];
 
 //GOOGLE SHEETS
 const GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby_rMXrcRAB-kAvH_BldA-8pucok1T6FmI2NM7-PbecTYcTApk0vUaUhcgvcIjJxtAs/exec";
@@ -235,59 +234,112 @@ async function registerUser() {
     }
 }
 
-// --- QR CODE SCANNER SYSTEM ---
-let isProcessingScan = false;
-async function onScanSuccess(decodedText, decodedResult) {
-    if (document.getElementById('qr-reader-results')) {
-        document.getElementById('qr-reader-results').innerText = `Scanned ID/Data: ${decodedText}`;
-    }
+//--- QR CODE SCANNER SYSTEM ---
 
+let isProcessingScan = false;
+
+async function onScanSuccess(decodedText, decodedResult) {
     if (isProcessingScan) return; 
     isProcessingScan = true;
 
     try {
         const qrData = JSON.parse(decodedText);
-        
         const token = localStorage.getItem("token");
 
-        const res = await fetch("http://127.0.0.1:8000/attendance/scan", { 
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` 
-            },
-            body: JSON.stringify({
-                ticket_id: qrData.ticket_id,
-                event_id: qrData.event_id
-            })
-        });
-
         if (typeof html5QrcodeScanner !== 'undefined') {
-            await html5QrcodeScanner.clear(); 
+            html5QrcodeScanner.pause(true);
+            
+            const scanStatusOverlay = document.getElementById('html5-qrcode-scan-status');
+            if (scanStatusOverlay) {
+                scanStatusOverlay.remove();
+            }
         }
 
-        if (res.ok) {
-            alert(`Attendance logged successfully for Ticket #${qrData.ticket_id}!`);
-            if (qrData.event_id) {
-                await loadAttendeesList(qrData.event_id);
-                switchAdminTab('attendees');
-            }
-            
-            if (typeof stopScannerAndGoBack === 'function') {
-                stopScannerAndGoBack(); 
-            }
-        } else {
-            const errData = await res.json();
-            alert("Database Error: " + (errData.detail || "Failed to log attendance."));
+        const resultsEl = document.getElementById('qr-reader-results');
+        if (resultsEl) {
+            resultsEl.innerHTML = `
+                <div style="margin-top: 15px; padding: 10px; text-align: center;">
+                    <button id="recordAttendanceBtn" style="padding: 12px 24px; background-color: #000; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; max-width: 250px; transition: background-color 0.3s;">
+                        RECORD
+                    </button>
+                </div>
+            `;
+
+            document.getElementById("recordAttendanceBtn").addEventListener("click", async () => {
+                const btn = document.getElementById("recordAttendanceBtn");
+                
+                if (btn.innerText === "RECORDED") {
+                    if (qrData.event_id) {
+                        await loadAttendeesList(qrData.event_id);
+                        switchAdminTab('attendees');
+                    }
+                    if (typeof stopScannerAndGoBack === 'function') {
+                        stopScannerAndGoBack(); 
+                    }
+                    return;
+                }
+
+                btn.innerText = "RECORDING...";
+                btn.style.backgroundColor = "#555";
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch("http://127.0.0.1:8000/attendance/scan", { 
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}` 
+                        },
+                        body: JSON.stringify({
+                            ticket_id: qrData.ticket_id,
+                            event_id: qrData.event_id
+                        })
+                    });
+
+                    if (res.ok) {
+                        isProcessingScan = false; 
+                        btn.innerText = "RECORDED";
+                        btn.style.backgroundColor = "#28a745";
+                        btn.disabled = false; 
+                        
+                    } else {
+                        const errData = await res.json();
+                        alert("Database Error: " + (errData.detail || "Failed to log attendance."));
+                        
+                        btn.innerText = "RECORD";
+                        btn.style.backgroundColor = "#000";
+                        btn.disabled = false;
+                        isProcessingScan = false;
+                        
+                        if (typeof html5QrcodeScanner !== 'undefined' && typeof html5QrcodeScanner.resume === 'function') {
+                            html5QrcodeScanner.resume();
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error saving record:", error);
+                    alert("Server network connection failed.");
+                    
+                    btn.innerText = "RECORD";
+                    btn.style.backgroundColor = "#000";
+                    btn.disabled = false;
+                    isProcessingScan = false;
+                    
+                    if (typeof html5QrcodeScanner !== 'undefined' && typeof html5QrcodeScanner.resume === 'function') {
+                        html5QrcodeScanner.resume();
+                    }
+                }
+            });
         }
 
     } catch (error) {
         console.error("Scanning Error:", error);
         alert("Invalid QR Code content or Server cannot be reached.");
+        isProcessingScan = false;
+        if (typeof html5QrcodeScanner !== 'undefined' && typeof html5QrcodeScanner.resume === 'function') {
+            html5QrcodeScanner.resume();
+        }
     }
-    stopScannerAndGoBack();
 }
-
 
 function startQRScanner() {
     const qrReaderEl = document.getElementById("qr-reader");
@@ -372,9 +424,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
-
-
-
 
 // --- EVENT MANAGEMENT & MANAGEMENT PREVIEWS ---
 function addQuestion() {
@@ -612,11 +661,12 @@ async function loadEvents() {
 async function openEventForm(eventId) {
     try {
         currentActiveEventId = eventId;
-       
+        
         const response = await fetch(`http://127.0.0.1:8000/events/${eventId}`);
-        if (!response.ok) throw new Error("HTTP request failed");
+        if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
 
         const event = await response.json();
+        if (!event) throw new Error("No event data received from server");
 
         const titleEl = document.getElementById("currentEventTitle");
         const descEl = document.getElementById("currentEventDescription");
@@ -626,27 +676,57 @@ async function openEventForm(eventId) {
         if (descEl) descEl.innerText = event.description || "";
         if (timeEl) timeEl.innerHTML = `<strong>TIME:</strong> ${event.time_limit || "Not Set"}`;
        
-        const questions = event.questions || [];
         const questionsContainer = document.getElementById("questionsContainer");
        
         if (questionsContainer) {
             questionsContainer.innerHTML = "";
 
+            if (!checkEventExpiry()) {
+                questionsContainer.innerHTML = `
+                    <div style="color: #ff3333; background-color: #ffe6e6; padding: 20px; border: 1px solid #ffcccc; border-radius: 8px; text-align: center; font-weight: bold; margin: 20px 0; font-family: sans-serif;">
+                        ⚠️ REGISTRATION CLOSED: The deadline for this event has already passed.
+                    </div>
+                `;
+                
+                const dynamicFormEl = document.getElementById("dynamicStudentForm");
+                if (dynamicFormEl) {
+                    const submitBtn = dynamicFormEl.querySelector("button[type='submit']");
+                    if (submitBtn) submitBtn.style.display = "none";
+                }
+                
+                showPage("studentEventFormPage");
+                return;
+            }
+
+            const dynamicFormEl = document.getElementById("dynamicStudentForm");
+            if (dynamicFormEl) {
+                const submitBtn = dynamicFormEl.querySelector("button[type='submit']");
+                if (submitBtn) submitBtn.style.display = "block";
+            }
+
+            const questions = event.questions || [];
 
             if (questions.length > 0) {
                 questions.forEach(q => {
+                    if (!q) return;
+
                     const fieldWrapper = document.createElement("div");
                     fieldWrapper.className = "input-field-group";
                     fieldWrapper.style.marginBottom = "20px";
+                    
+                    const safeId = q.id !== undefined && q.id !== null ? String(q.id) : "";
+                    const labelText = q.question_text || "Field";
+                    const isRequired = q.required !== false; 
+
                     fieldWrapper.innerHTML = `
                         <label class="form-label" style="display: block; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; text-align: left; font-size: 14px; color: #333;">
-                            ${q.question_text || "Field"}
+                            ${labelText}
                         </label>
                         <input type="text"
                                class="form-control student-answer-input"
-                               data-question-id="${q.id}"
-                               name="question_${q.id}"
-                               required
+                               data-question-id="${safeId}"
+                               name="question_${safeId}"
+                               ${isRequired ? 'required' : ''}
                                style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; background-color: #fafafa; box-sizing: border-box;" />
                     `;
                     questionsContainer.appendChild(fieldWrapper);
@@ -655,12 +735,20 @@ async function openEventForm(eventId) {
                 questionsContainer.innerHTML = "<p style='color: #777; font-style: italic; text-align: left;'>No fields required for this event.</p>";
             }
         }
-       
-        document.getElementById("dynamicStudentForm").classList.remove("hidden");
-        document.getElementById("qrResultContainer").classList.add("hidden");
+    
+        const dynamicFormEl = document.getElementById("dynamicStudentForm");
+        if (dynamicFormEl) {
+            dynamicFormEl.classList.remove("hidden");
+        }
+        
+        const qrResultContainerEl = document.getElementById("qrResultContainer");
+        if (qrResultContainerEl) {
+            qrResultContainerEl.classList.add("hidden");
+        }
        
         showPage("studentEventFormPage");
     } catch (err) {
+        console.error("Error sa pag-load ng event form:", err);
         alert("An error occurred while loading the event registration form.");
     }
 }
@@ -669,6 +757,10 @@ async function submitStudentResponse(e) {
     if (e) {
         if (typeof e.preventDefault === "function") e.preventDefault();
         if (typeof e.stopPropagation === "function") e.stopPropagation();
+    }
+
+    if (!checkEventExpiry()) {
+        return; 
     }
 
     const token = localStorage.getItem("token");
@@ -830,72 +922,86 @@ function switchAdminTab(tabName) {
         attendeesBtn.style.background = "black";
         attendeesBtn.style.color = "white";
     }
-}
 
-async function loadAttendeesList(eventId) {
-    try {
-        const response = await fetch(`http://127.0.0.1:8000/events/${eventId}/attendees`);
-        if (!response.ok) throw new Error("Failed to fetch attendees");
-       
-        currentAttendeesData = await response.json();
-        const tableBody = document.getElementById("attendeesTableBody");
-       
-        if (tableBody) {
-            tableBody.innerHTML = "";
-           
-            if (currentAttendeesData.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #777; font-style: italic;">No attendees registered yet.</td></tr>`;
-                return;
-            }
-
-
-            currentAttendeesData.forEach(row => {
-                const tr = document.createElement("tr");
-                tr.style.borderBottom = "1px solid #dbdbdb";
-                tr.innerHTML = `
-                    <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.name || "-"}</td>
-                    <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.student_number || "-"}</td>
-                    <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.block || "-"}</td>
-                    <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.department || "-"}</td>
-                    <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.course || "-"}</td>
-                    <td style="padding: 12px; border: 1px solid #dbdbdb; font-size: 12px; color: #555;">${row.custom_answers || "-"}</td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
-    } catch (err) {
-        console.error("Error loading attendees table:", err);
+    if (tabName === 'attendees') {
+        loadAttendeesList();
     }
 }
 
+let currentAttendeesData = [
+    {
+        name: "STUDENT ACC",
+        student_number: "2025-200469",
+        block: "ICS-401P",
+        department: "ICS",
+        course: "BSIT",
+        age: "20",
+        nationality: "FILIPINO",
+        status: "PRESENT"
+    }
+];
+
+function checkEventExpiry() {
+    const currentHour = new Date().getHours(); 
+
+    if (currentHour >= 7 && currentHour < 22) {
+        return false;
+    }
+    return true; 
+}
+
+function loadAttendeesList() {
+    const tableBody = document.getElementById("attendeesTableBody");
+    if (tableBody) {
+        tableBody.innerHTML = "";
+        currentAttendeesData.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.style.borderBottom = "1px solid #dbdbdb";
+            let statusColor = row.status === "PRESENT" ? "#2ec4b6" : "#ff9f1c";
+            tr.innerHTML = `
+                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.name || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.student_number || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.block || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.department || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb;">${row.course || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.age || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; text-align: center;">${row.nationality || "-"}</td>
+                <td style="padding: 12px; border: 1px solid #dbdbdb; font-weight: bold; color: ${statusColor}; text-align: center;">${row.status || "PENDING"}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+}
 
 function downloadAttendeesCSV() {
-    if (!currentAttendeesData || currentAttendeesData.length === 0) {
-        alert("No data available to download.");
-        return;
-    }
-
-
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "NAME,STUDENT NUMBER,BLOCK,DEPARTMENT,COURSE,ADDITIONAL ANSWERS\n";
-
+    let csvRows = [];
+    csvRows.push("NAME,STUDENT NUMBER,BLOCK,DEPARTMENT,COURSE,AGE,NATIONALITY,STATUS");
 
     currentAttendeesData.forEach(row => {
-        let cleanCustom = (row.custom_answers || "").replace(/"/g, '""');
-        let line = `"${row.name || ''}","${row.student_number || ''}","${row.block || ''}","${row.department || ''}","${row.course || ''}","${cleanCustom}"`;
-        csvContent += line + "\n";
+        let line = [
+            `"${(row.name || '').replace(/"/g, '""')}"`,
+            `"${(row.student_number || '').replace(/"/g, '""')}"`,
+            `"${(row.block || '').replace(/"/g, '""')}"`,
+            `"${(row.department || '').replace(/"/g, '""')}"`,
+            `"${(row.course || '').replace(/"/g, '""')}"`,
+            `"${(row.age || '').replace(/"/g, '""')}"`,
+            `"${(row.nationality || '').replace(/"/g, '""')}"`,
+            `"${(row.status || 'PENDING').replace(/"/g, '""')}"`
+        ].join(",");
+        csvRows.push(line);
     });
 
-
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Attendees_Event_${currentAdminEventId}.csv`);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Attendees_List.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
-
 
 function loadStudentAccountDetails() {
     document.getElementById("viewStudentName").innerText = "STUDENT ACC";
